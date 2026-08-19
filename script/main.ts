@@ -1,12 +1,25 @@
 import { Table } from "./initial-table";
-import { initialDeleteButton } from "./delete-box-event";
+import {
+  initialDeleteTableButton,
+  initialDeleteTaskButton,
+} from "./delete-boxes-event";
 import { initialAddTask } from "./add-task";
 
-const mainTable = initialTable("Test table");
-
-function initialTable(name: string): Table {
-  const table = new Table(name);
-  initialDeleteButton(table);
+function initialTable(table: Table): Table {
+  initialDeleteTaskButton(table);
   initialAddTask(table);
+  initialDeleteTableButton(table);
   return table;
+}
+
+for (let index = 0; index < localStorage.length; index++) {
+  const key = localStorage.key(index);
+  if (key && key.startsWith("table_")) {
+    const tableData = localStorage.getItem(key);
+
+    if (tableData) {
+      const table = Table.loadTable(tableData);
+      if (table) initialTable(table);
+    }
+  }
 }

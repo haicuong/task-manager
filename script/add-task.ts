@@ -1,13 +1,6 @@
 import { Table } from "./initial-table";
 import { createFixedHiddenDiv, registerUnforcusedEvent } from "./event-manager";
 
-interface AddTaskFormData {
-  name: string;
-  description: string;
-  priority: "High" | "Medium" | "Low";
-  date: Date;
-}
-
 const addTaskBox = createFixedHiddenDiv();
 addTaskBox.className += " add-task-box p-4 w-fit";
 addTaskBox.innerHTML = `

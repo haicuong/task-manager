@@ -35,7 +35,7 @@ export class Table {
       <caption class="border-x-2 border-t-2 border-white">
         <div class="relative flex justify-between items-center p-4">
           <button type="button" class="addTask hover:cursor-pointer hover:bg-white/25 bg-[#121212] border-2 border-white rounded-xl p-2">Add Task</button>
-          <h1 class="font-bold text-xl">This is a task manager</h1>
+          <h1 data-table-caption class="font-bold text-xl">${name}</h1>
           <button type="button" class="status">For Status Field</button>
         </div>
       </caption>
@@ -49,12 +49,57 @@ export class Table {
       </thead>`;
     this.tableElement.append(this.tbodyElement);
     document.body.append(this.tableElement);
+
+    this.storeTable();
+  }
+
+  destroy() {
+    this.tasksMap.clear();
+    this.tasksOrder = [];
+    this.tableElement.remove();
+
+    localStorage.removeItem(`table_${this.name}`);
+  }
+
+  storeTable() {
+    const tableData = {
+      name: this.name,
+      tasksMapEntries: Array.from(this.tasksMap),
+      tasksOrder: this.tasksOrder,
+    };
+
+    localStorage.setItem(`table_${this.name}`, JSON.stringify(tableData));
+  }
+
+  static loadTable(data: string) {
+    const rawData = JSON.parse(data);
+    if (!rawData) return null;
+
+    try {
+      const table = new Table(rawData.name);
+      for (const [UUID, task] of rawData.tasksMapEntries) {
+        const constructuredTask: Task = {
+          ...task,
+          date: new Date(task.date),
+        };
+
+        table.tasksMap.set(UUID, constructuredTask);
+      }
+      table.tasksOrder = rawData.tasksOrder;
+
+      table.renderDOM();
+
+      return table;
+    } catch (error) {
+      console.error(`Can't load table: ${error}`);
+    }
   }
 
   addTask(task: Task) {
     const UUID = crypto.randomUUID();
     this.tasksMap.set(UUID, task);
     this.tasksOrder.push(UUID);
+    this.storeTable();
     this.renderDOM();
   }
 
@@ -62,6 +107,7 @@ export class Table {
     this.tasksMap.delete(UUID);
     const indexOrder = this.tasksOrder.indexOf(UUID);
     if (indexOrder > -1) this.tasksOrder.splice(indexOrder, 1);
+    this.storeTable();
     this.renderDOM();
   }
 
