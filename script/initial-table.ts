@@ -74,7 +74,9 @@ export class Table {
       const tr = document.createElement("tr");
       tr.dataset.uuid = UUID;
       tr.innerHTML = `
-        <td data-tooltip="${task.description}" class="border-y-2 p-2 border-white text-center">${task.name}</td>
+        <td class="border-y-2 p-2 border-white text-center">
+          <span data-tooltip="${task.description}">${task.name}</span>
+        </td>
         <td class="border-y-2 p-2 border-white text-center">${task.priority}</td>
         <td class="border-y-2 p-2 border-white text-center">${task.date.toLocaleString()}</td>
         <td class="border-y-2 p-2 border-white text-center">
