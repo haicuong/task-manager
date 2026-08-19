@@ -8,6 +8,25 @@
     <title>Task Manager</title>
   </head>
   <body class="bg-[#121212] text-white">
-    
+    <div class="bg-[#121212] p-4 w-fit border-2 border-white rounded-xl">
+      <form action="" class="flex flex-col gap-1">
+        <article>
+          <label for="name-input" class="mr-2">Task name: </label>
+          <input class="p-1 border-[0.5px]" type="text" id="name-input" name="nameInput" required placeholder="New task">
+        </article>
+        <article>
+          <label for="priority-input" class="mr-2">Priority: </label>
+          <select required class="border-[0.5px] p-1" name="priorityInput" id="priority-input">
+            <option class="bg-[#121212]" value="Low">Low</option>
+            <option class="bg-[#121212]" value="Medium">Medium</option>
+            <option class="bg-[#121212]" value="High">High</option>
+          </select>
+        </article>
+        <article>
+          <label class="mr-2" for="date-input">Date: </label>
+          <input class="bg-[#121212] border-[0.5px] p-1 scheme-dark" id="date-input" name="dateInput" required type="date">
+        </article>
+      </form>
+    </div>
   </body>
 </html>

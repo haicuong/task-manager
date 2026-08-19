@@ -1,13 +1,14 @@
-type Task = {
+export type Task = {
   name: string;
   priority: "High" | "Medium" | "Low";
   date: Date;
   status?: "Complete" | "Incomplete";
 };
 
-class Table {
+export class Table {
   name: string;
-  tasks: Task[];
+  tasksMap: Map<string, Task>;
+  tasksOrder: string[];
   tableElement: HTMLTableElement;
   tbodyElement: HTMLTableSectionElement;
   selecting: Task | undefined;
@@ -18,7 +19,8 @@ class Table {
     tbodyElement?: HTMLTableSectionElement,
   ) {
     this.name = name;
-    this.tasks = [];
+    this.tasksMap = new Map();
+    this.tasksOrder = [];
     if (tableElement) this.tableElement = tableElement;
     else this.tableElement = document.createElement("table");
     if (tbodyElement) {
@@ -30,7 +32,13 @@ class Table {
     this.tableElement.classList =
       "w-full m-4 mx-auto border-collapse border-2 border-white border-white";
     this.tableElement.innerHTML = `
-      <caption class="border-x-2 border-t-2 p-4 border-white">This is a task manager</caption>
+      <caption class="border-x-2 border-t-2 border-white">
+        <div class="relative flex justify-between items-center p-4">
+          <button type="button" class="addTask">For Adding Task</button>
+          <h1 class="font-bold text-xl">This is a task manager</h1>
+          <button type="button" class="status">For Status Field</button>
+        </div>
+      </caption>
       <thead>
       <tr>
       <th class="border-2 p-4 border-white text-center">Name</th>
@@ -44,21 +52,26 @@ class Table {
   }
 
   addTask(task: Task) {
-    this.tasks.push(task);
+    const UUID = crypto.randomUUID();
+    this.tasksMap.set(UUID, task);
+    this.tasksOrder.push(UUID);
     this.updateDOM();
   }
 
   updateDOM() {
     this.tbodyElement.innerHTML = "";
 
-    for (const task of this.tasks) {
+    for (const [UUID, task] of this.tasksMap) {
       const tr = document.createElement("tr");
+      tr.dataset.uuid = UUID;
       tr.innerHTML = `
-    <td class="border-y-2 p-2 border-white text-center">${task.name}</td>
-    <td class="border-y-2 p-2 border-white text-center">${task.priority}</td>
-    <td class="border-y-2 p-2 border-white text-center">${task.date.toLocaleString()}</td>
-    <td class="border-y-2 p-2 border-white text-center">${task.status ?? "Incomplete"}</td>
-  `;
+        <td class="border-y-2 p-2 border-white text-center">${task.name}</td>
+        <td class="border-y-2 p-2 border-white text-center">${task.priority}</td>
+        <td class="border-y-2 p-2 border-white text-center">${task.date.toLocaleString()}</td>
+        <td class="border-y-2 p-2 border-white text-center">
+          <button type="button">${task.status ?? "Incomplete"}</button>
+        </td>
+      `;
 
       this.tbodyElement.append(tr);
     }
@@ -88,7 +101,7 @@ function initialDeleteButton(table: Table) {
     if (!(event.target instanceof HTMLElement)) return;
 
     const tr = event.target.closest("TR");
-    if (!tr) return;
+    if (!tr || !(tr instanceof HTMLElement)) return;
 
     const deleteButton = deleteBox.querySelector(".delete-button");
     deleteBox.style.left = "0px";
@@ -100,7 +113,7 @@ function initialDeleteButton(table: Table) {
 
     if (!(deleteButton instanceof HTMLButtonElement)) return;
     deleteButton!.onclick = () => {
-      table.tasks.splice(Array.from(tr.parentElement!.children).indexOf(tr), 1);
+      if (tr.dataset.uuid) table.tasksMap.delete(tr.dataset.uuid);
       table.updateDOM();
       deleteBox.classList.add("hidden");
     };
