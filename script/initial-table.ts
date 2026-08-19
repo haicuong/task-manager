@@ -1,5 +1,6 @@
 export type Task = {
   name: string;
+  description: string;
   priority: "High" | "Medium" | "Low";
   date: Date;
   status?: "Complete" | "Incomplete";
@@ -11,7 +12,6 @@ export class Table {
   tasksOrder: string[];
   tableElement: HTMLTableElement;
   tbodyElement: HTMLTableSectionElement;
-  selecting: Task | undefined;
 
   constructor(
     name: string,
@@ -34,7 +34,7 @@ export class Table {
     this.tableElement.innerHTML = `
       <caption class="border-x-2 border-t-2 border-white">
         <div class="relative flex justify-between items-center p-4">
-          <button type="button" class="addTask">For Adding Task</button>
+          <button type="button" class="addTask hover:cursor-pointer hover:bg-white/25 bg-[#121212] border-2 border-white rounded-xl p-2">Add Task</button>
           <h1 class="font-bold text-xl">This is a task manager</h1>
           <button type="button" class="status">For Status Field</button>
         </div>
@@ -55,17 +55,26 @@ export class Table {
     const UUID = crypto.randomUUID();
     this.tasksMap.set(UUID, task);
     this.tasksOrder.push(UUID);
-    this.updateDOM();
+    this.renderDOM();
   }
 
-  updateDOM() {
+  deleteTask(UUID: string) {
+    this.tasksMap.delete(UUID);
+    const indexOrder = this.tasksOrder.indexOf(UUID);
+    if (indexOrder > -1) this.tasksOrder.splice(indexOrder, 1);
+    this.renderDOM();
+  }
+
+  renderDOM() {
     this.tbodyElement.innerHTML = "";
 
-    for (const [UUID, task] of this.tasksMap) {
+    for (const UUID of this.tasksOrder) {
+      const task = this.tasksMap.get(UUID);
+      if (!task) throw new Error(`Task with UUID ${UUID} not exist`);
       const tr = document.createElement("tr");
       tr.dataset.uuid = UUID;
       tr.innerHTML = `
-        <td class="border-y-2 p-2 border-white text-center">${task.name}</td>
+        <td data-tooltip="${task.description}" class="border-y-2 p-2 border-white text-center">${task.name}</td>
         <td class="border-y-2 p-2 border-white text-center">${task.priority}</td>
         <td class="border-y-2 p-2 border-white text-center">${task.date.toLocaleString()}</td>
         <td class="border-y-2 p-2 border-white text-center">
@@ -76,57 +85,4 @@ export class Table {
       this.tbodyElement.append(tr);
     }
   }
-}
-
-document.addEventListener("keydown", hideDeleteBoxEvent);
-document.addEventListener("mousedown", hideDeleteBoxEvent);
-document.addEventListener("wheel", hideDeleteBoxEvent);
-
-const deleteBox = document.createElement("div");
-deleteBox.classList =
-  "bg-[#121212] border-2 border-white rounded-xl fixed hidden delete-container";
-deleteBox.style.left = "0px";
-deleteBox.style.top = "0px";
-deleteBox.innerHTML = `<button class="delete-button rounded-sm p-2 hover:cursor-pointer hover:bg-white/25"></button>`;
-document.body.append(deleteBox);
-
-export function initialTable(name: string): Table {
-  const table = new Table(name);
-  initialDeleteButton(table);
-  return table;
-}
-
-function initialDeleteButton(table: Table) {
-  table.tbodyElement.addEventListener("contextmenu", (event) => {
-    if (!(event.target instanceof HTMLElement)) return;
-
-    const tr = event.target.closest("TR");
-    if (!tr || !(tr instanceof HTMLElement)) return;
-
-    const deleteButton = deleteBox.querySelector(".delete-button");
-    deleteBox.style.left = "0px";
-    deleteButton!.textContent = `Delete "${tr.children[0].textContent}" task`;
-
-    deleteBox.classList.remove("hidden");
-    deleteBox.style.left = `${Math.min(event.clientX, window.innerWidth - deleteBox.offsetWidth)}px`;
-    deleteBox.style.top = `${Math.max(event.clientY - deleteBox.offsetHeight, 0)}px`;
-
-    if (!(deleteButton instanceof HTMLButtonElement)) return;
-    deleteButton!.onclick = () => {
-      if (tr.dataset.uuid) table.tasksMap.delete(tr.dataset.uuid);
-      table.updateDOM();
-      deleteBox.classList.add("hidden");
-    };
-
-    event.preventDefault();
-  });
-}
-
-function hideDeleteBoxEvent(event: Event) {
-  if (deleteBox.classList.contains("hidden")) return;
-
-  if (!(event.target instanceof HTMLElement)) return;
-
-  if (event.target.closest(".delete-container") === null)
-    deleteBox.classList.add("hidden");
 }
