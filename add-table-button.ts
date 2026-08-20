@@ -1,6 +1,6 @@
 import { DEFAULT_BUTTON_CLASSES } from "./script/event-manager";
 import { Table } from "./script/initial-table";
-import { initialTable } from "./script/main";
+import { createTable } from "./script/main";
 
 export function loadAddTableButton(parentElement: HTMLElement) {
   const form = document.createElement("form");
@@ -24,7 +24,7 @@ export function loadAddTableButton(parentElement: HTMLElement) {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    initialTable(new Table(nameInput.value, form));
+    createTable(new Table(nameInput.value, form));
     nameInput.value = "";
   });
 

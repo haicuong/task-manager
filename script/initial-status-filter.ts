@@ -8,7 +8,12 @@ export function initialStatusFilter(table: Table) {
 
   updateButton(button, table);
 
-  button.addEventListener("click", (event) => {
+  table.addEventListener("statusFilterChange", () => {
+    table.storeTable();
+    table.renderDOM();
+  });
+
+  button.addEventListener("click", () => {
     table.toggleStatusFilter();
 
     updateButton(button, table);

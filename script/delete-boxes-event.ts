@@ -64,10 +64,6 @@ export async function initialDeleteTable(table: Table) {
       deleteBox.classList.add("hidden");
     };
   });
-
-  table.addEventListener("destroy", () => {
-    localStorage.removeItem(`table_${table.name}`);
-  });
 }
 
 function hideDeleteBoxEvent(event: Event) {

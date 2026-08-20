@@ -61,9 +61,6 @@ export class Table extends EventTarget {
     this.tableElement.append(this.tbodyElement);
     if (addTableElement) addTableElement.before(this.tableElement);
     else document.body.append(this.tableElement);
-
-    this.storeTable();
-    this.renderDOM();
   }
 
   setSorting(sortingBy: "Name" | "Date", sortingOrderBy?: "Desc" | "Asc") {
@@ -81,18 +78,15 @@ export class Table extends EventTarget {
     switch (this.statusFilter) {
       case "None":
         this.statusFilter = "Incomplete";
-        this.renderDOM();
         break;
       case "Incomplete":
         this.statusFilter = "Complete";
-        this.renderDOM();
         break;
       case "Complete":
         this.statusFilter = "None";
-        this.renderDOM();
         break;
     }
-    this.storeTable();
+    this.dispatchEvent(new CustomEvent("statusFilterChange"));
   }
 
   toogleTaskStatus(UUID: string) {
@@ -132,11 +126,11 @@ export class Table extends EventTarget {
   }
 
   static async loadTable(data: string) {
-    const rawData = JSON.parse(data);
-    if (!rawData || !rawData.name) return null;
-
-    const table = new Table(rawData.name);
     try {
+      const rawData = JSON.parse(data);
+      if (!rawData || !rawData.name) return null;
+
+      const table = new Table(rawData.name);
       for (const [UUID, task] of rawData.tasksMapEntries) {
         const constructuredTask: Task = {
           ...task,
@@ -149,6 +143,8 @@ export class Table extends EventTarget {
       table.statusFilter = rawData.statusFilter;
       table.sortingOrderBy = rawData.sortingOrderBy;
       table.sortingBy = rawData.sortingBy;
+
+      return table;
     } catch (error) {
       if (error instanceof Error) {
         throw new TableLoadError(error.message);
@@ -156,11 +152,6 @@ export class Table extends EventTarget {
         console.error("An unexpected error occurred:", error);
       }
     }
-
-    table.storeTable();
-    table.renderDOM();
-
-    return table;
   }
 
   addTask(task: Task) {

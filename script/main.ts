@@ -10,14 +10,21 @@ import { asyncStorage } from "./async-storage";
 
 loadTableFromStorage();
 
-export function initialTable(table: Table): Table {
+export function setupTable(table: Table): Table {
   initialDeleteTask(table);
   initialAddTask(table);
   initialDeleteTable(table);
   initialChangeStatus(table);
   initialStatusFilter(table);
   initialTableSorting(table);
-  console.log(`Table ${table.name} initialed`);
+
+  return table;
+}
+
+export function createTable(table: Table): Table {
+  setupTable(table);
+  table.storeTable();
+  table.renderDOM();
   return table;
 }
 
@@ -30,7 +37,10 @@ async function loadTableFromStorage() {
 
         if (tableData) {
           const table = await Table.loadTable(tableData);
-          if (table) initialTable(table);
+          if (table) {
+            setupTable(table);
+            table.renderDOM();
+          }
         }
       } catch (error) {
         if (error instanceof TableLoadError) {
