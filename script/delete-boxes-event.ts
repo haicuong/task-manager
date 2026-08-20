@@ -45,7 +45,7 @@ export function initialDeleteTask(table: Table) {
   });
 }
 
-export function initialDeleteTable(table: Table) {
+export async function initialDeleteTable(table: Table) {
   table.tableElement.addEventListener("contextmenu", (event) => {
     if (!(event.target instanceof HTMLElement)) return;
 

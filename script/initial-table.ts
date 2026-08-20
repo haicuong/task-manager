@@ -1,3 +1,4 @@
+import { asyncStorage } from "./async-storage";
 import {
   TableLoadError,
   TaskNotFoundError,
@@ -62,6 +63,7 @@ export class Table extends EventTarget {
     else document.body.append(this.tableElement);
 
     this.storeTable();
+    this.renderDOM();
   }
 
   setSorting(sortingBy: "Name" | "Date", sortingOrderBy?: "Desc" | "Asc") {
@@ -108,12 +110,12 @@ export class Table extends EventTarget {
     this.dispatchEvent(new CustomEvent("taskStatusChange"));
   }
 
-  destroy() {
+  async destroy() {
     this.tasksMap.clear();
     this.tasksOrder = [];
     this.tableElement.remove();
 
-    localStorage.removeItem(`table_${this.name}`);
+    await asyncStorage.removeItem(`table_${this.name}`);
   }
 
   async storeTable() {
@@ -126,7 +128,7 @@ export class Table extends EventTarget {
       sortingBy: this.sortingBy,
     };
 
-    await localStorage.setItem(`table_${this.name}`, JSON.stringify(tableData));
+    await asyncStorage.setItem(`table_${this.name}`, JSON.stringify(tableData));
   }
 
   static async loadTable(data: string) {
@@ -169,10 +171,8 @@ export class Table extends EventTarget {
   }
 
   deleteTask(UUID: string) {
-    this.dispatchEvent(
-      new CustomEvent("taskDeleted", { detail: this.tasksMap.get(UUID) }),
-    );
     this.tasksMap.delete(UUID);
+    this.dispatchEvent(new CustomEvent("taskDeleted", { detail: UUID }));
   }
 
   renderDOM() {

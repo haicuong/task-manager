@@ -12,7 +12,6 @@ document.addEventListener("mouseover", (event) => {
   const messenge = HTMLToTooltip.dataset.tooltipCursor;
   if (!messenge) return;
   tooltipBox.textContent = messenge;
-  tooltipBoxRect = tooltipBox.getBoundingClientRect();
   requestAnimationID = requestAnimationFrame(updateTooltipBoxTransform);
 
   tooltipBox.classList.remove("hidden");
@@ -37,10 +36,8 @@ let requestAnimationID: number | null = null;
 let tooltipX = 0;
 let tooltipY = 0;
 
-let tooltipBoxRect: DOMRect | null = null;
-
 function updateTooltipBoxTransform() {
-  if ((tooltipX !== cursorX || tooltipY !== cursorY) && tooltipBoxRect) {
+  if (tooltipX !== cursorX || tooltipY !== cursorY) {
     tooltipX = cursorX;
     tooltipY = cursorY;
 
@@ -51,13 +48,11 @@ function updateTooltipBoxTransform() {
 }
 
 function calculateTooltipTransform(x: number, y: number) {
-  if (!tooltipBoxRect) return;
-
-  const finalX = Math.min(x, window.innerWidth - tooltipBoxRect.width);
+  const finalX = Math.min(x, window.innerWidth - tooltipBox.offsetWidth);
   const finalY =
-    y + tooltipBoxRect.height <= window.innerHeight
+    y + tooltipBox.offsetHeight <= window.innerHeight
       ? y
-      : y - tooltipBoxRect.height;
+      : y - tooltipBox.offsetHeight;
 
   tooltipBox.style.transform = `translate(${finalX}px, ${finalY}px)`;
 }
@@ -73,7 +68,6 @@ document.addEventListener("mouseout", (event) => {
 
   tooltipBox.style.transform = `translate(0px, 0px)`;
   tooltipBox.classList.add("hidden");
-  tooltipBoxRect = null;
 
   if (requestAnimationID) {
     cancelAnimationFrame(requestAnimationID);

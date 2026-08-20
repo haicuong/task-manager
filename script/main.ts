@@ -5,6 +5,8 @@ import { initialChangeStatus } from "./event-manager";
 import { initialStatusFilter } from "./initial-status-filter";
 import { initialTableSorting } from "./initial-table-sorting";
 import { loadAddTableButton } from "../add-table-button";
+import { TableLoadError } from "./custom-errors";
+import { asyncStorage } from "./async-storage";
 
 loadTableFromStorage();
 
@@ -21,17 +23,23 @@ export function initialTable(table: Table): Table {
 
 async function loadTableFromStorage() {
   for (let index = 0; index < localStorage.length; index++) {
-    const key = await localStorage.key(index);
+    const key = localStorage.key(index);
     if (key && key.startsWith("table_")) {
-      const tableData = await localStorage.getItem(key);
+      try {
+        const tableData = await asyncStorage.getItem(key);
 
-      if (tableData) {
-        const table = await Table.loadTable(tableData);
-        console.log(`Table: ${table ? "true" : "null"}`);
-        if (table) initialTable(table);
+        if (tableData) {
+          const table = await Table.loadTable(tableData);
+          if (table) initialTable(table);
+        }
+      } catch (error) {
+        if (error instanceof TableLoadError) {
+          console.warn(`Skipping corrupted table: ${key}, ${error.message}`);
+        } else {
+          console.error(`An unexpected error occur: ${error}`);
+        }
       }
     }
   }
-
   loadAddTableButton(document.body);
 }
