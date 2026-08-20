@@ -16,7 +16,7 @@ function showDeleteBox(event: PointerEvent) {
   deleteBox.style.top = `${Math.max(event.clientY - deleteBox.offsetHeight, 0)}px`;
 }
 
-export function initialDeleteTaskButton(table: Table) {
+export function initialDeleteTask(table: Table) {
   table.tbodyElement.addEventListener("contextmenu", (event) => {
     if (!(event.target instanceof HTMLElement)) return;
 
@@ -38,7 +38,7 @@ export function initialDeleteTaskButton(table: Table) {
   });
 }
 
-export function initialDeleteTableButton(table: Table) {
+export function initialDeleteTable(table: Table) {
   table.tableElement.addEventListener("contextmenu", (event) => {
     if (!(event.target instanceof HTMLElement)) return;
 

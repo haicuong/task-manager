@@ -91,6 +91,7 @@ export function initialAddTask(table: Table) {
       description,
       priority,
       date,
+      status: "Incomplete",
     });
 
     addTaskBox.classList.add("hidden");

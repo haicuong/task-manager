@@ -1,3 +1,5 @@
+import { Table } from "./initial-table";
+
 export function registerUnforcusedEvent(handler: (event: Event) => void) {
   document.addEventListener("keydown", handler);
   document.addEventListener("mousedown", handler);
@@ -12,4 +14,21 @@ export function createFixedHiddenDiv() {
   document.body.append(div);
 
   return div;
+}
+
+export function initialChangeStatus(table: Table) {
+  table.tbodyElement.addEventListener("click", (event) => {
+    if (!(event.target instanceof HTMLElement)) return;
+
+    const button = event.target.closest(".task-status");
+    if (!button || !(button instanceof HTMLElement)) return;
+
+    const taskElement = button.closest("[data-uuid]");
+    if (!taskElement || !(taskElement instanceof HTMLElement)) return;
+
+    const UUID = taskElement.dataset.uuid;
+    if (!UUID) return;
+
+    table.toogleTaskStatus(UUID);
+  });
 }

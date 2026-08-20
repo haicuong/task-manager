@@ -1,14 +1,15 @@
 import { Table } from "./initial-table";
-import {
-  initialDeleteTableButton,
-  initialDeleteTaskButton,
-} from "./delete-boxes-event";
+import { initialDeleteTable, initialDeleteTask } from "./delete-boxes-event";
 import { initialAddTask } from "./add-task";
+import { initialChangeStatus } from "./event-manager";
+import { initialStatusFilter } from "./initial-status-filter";
 
 function initialTable(table: Table): Table {
-  initialDeleteTaskButton(table);
+  initialDeleteTask(table);
   initialAddTask(table);
-  initialDeleteTableButton(table);
+  initialDeleteTable(table);
+  initialChangeStatus(table);
+  initialStatusFilter(table);
   return table;
 }
 
