@@ -9,16 +9,13 @@ export function initialTableSorting(table: Table) {
   rotateSortingIconByOrder(sortingIcon, table.sortingOrderBy);
 
   const sortButtons = table.tableElement.querySelectorAll("[data-sorting]");
-  try {
-    for (const sortButton of sortButtons) {
-      const sortBy = (sortButton as HTMLElement).dataset.sorting;
-      if (table.sortingBy === sortBy) {
-        sortButton.append(sortingIcon);
-        break;
-      }
+
+  for (const sortButton of sortButtons) {
+    const sortBy = (sortButton as HTMLElement).dataset.sorting;
+    if (table.sortingBy === sortBy) {
+      sortButton.append(sortingIcon);
+      break;
     }
-  } catch (error) {
-    console.error(`Can't sort table: ${error}`);
   }
 
   table.tableElement.addEventListener("click", (event) => {
@@ -36,6 +33,11 @@ export function initialTableSorting(table: Table) {
 
     rotateSortingIconByOrder(sortingIcon, table.sortingOrderBy);
     sortButton.append(sortingIcon);
+  });
+
+  table.addEventListener("sorted", () => {
+    table.storeTable();
+    table.renderDOM();
   });
 }
 

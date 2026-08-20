@@ -34,4 +34,9 @@ export function initialChangeStatus(table: Table) {
 
     table.toogleTaskStatus(UUID);
   });
+
+  table.addEventListener("taskStatusChange", () => {
+    table.storeTable();
+    table.renderDOM();
+  });
 }

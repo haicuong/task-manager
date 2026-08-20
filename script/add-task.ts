@@ -1,5 +1,6 @@
 import { Table } from "./initial-table";
 import { createFixedHiddenDiv, registerUnforcusedEvent } from "./event-manager";
+import { DataNotFoundError, FormNotFoundError } from "./custom-errors";
 
 const addTaskBox = createFixedHiddenDiv();
 addTaskBox.className += " add-task-box p-4 w-fit z-50";
@@ -47,7 +48,7 @@ export function initialAddTask(table: Table) {
   const addTaskButton = table.tableElement.querySelector(".addTask");
   if (!addTaskButton || !(addTaskButton instanceof HTMLButtonElement)) return;
 
-  addTaskButton.addEventListener("click", (event) => {
+  addTaskButton.addEventListener("click", () => {
     addTaskBox.classList.remove("hidden");
     const buttonRect = addTaskButton.getBoundingClientRect();
     addTaskBox.style.top = `${buttonRect.bottom}px`;
@@ -64,13 +65,19 @@ export function initialAddTask(table: Table) {
 
     const dateInput = addTaskBox.querySelector("#date-input");
     if (!(dateInput instanceof HTMLInputElement))
-      throw new Error("Not found date input");
+      throw new DataNotFoundError("Not found date input");
 
     dateInput.valueAsDate = new Date();
   });
 
   const form = addTaskBox.querySelector("form");
-  if (!form) throw Error("Form not found on initial Add Task Box");
+  if (!form)
+    throw new FormNotFoundError("Form not found on initial Add Task Box");
+
+  table.addEventListener("taskAdded", () => {
+    table.storeTable();
+    table.renderDOM();
+  });
 
   form.addEventListener("submit", (event) => {
     if (!(event.target instanceof HTMLFormElement)) return;

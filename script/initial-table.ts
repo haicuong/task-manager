@@ -1,3 +1,8 @@
+import {
+  TableLoadError,
+  TaskNotFoundError,
+  TbodyTagNotMatchError,
+} from "./custom-errors";
 import { DEFAULT_BUTTON_CLASSES } from "./event-manager";
 
 export type Task = {
@@ -9,7 +14,7 @@ export type Task = {
   UUID?: string;
 };
 
-export class Table {
+export class Table extends EventTarget {
   name: string;
   tasksMap: Map<string, Task> = new Map();
   tasksOrder: Task[] = [];
@@ -25,10 +30,11 @@ export class Table {
     tableElement?: HTMLTableElement,
     tbodyElement?: HTMLTableSectionElement,
   ) {
+    super();
     this.name = name;
     if (tableElement) this.tableElement = tableElement;
     if (tbodyElement) {
-      if (tbodyElement.tagName !== "TBODY") throw new Error("Wrong tbody type");
+      if (tbodyElement.tagName !== "TBODY") throw new TbodyTagNotMatchError();
 
       this.tbodyElement = tbodyElement;
     }
@@ -66,8 +72,7 @@ export class Table {
     } else this.sortingOrderBy = "Asc";
     this.sortingBy = sortingBy;
 
-    this.storeTable();
-    this.renderDOM();
+    this.dispatchEvent(new CustomEvent("sorted"));
   }
 
   toggleStatusFilter() {
@@ -88,20 +93,19 @@ export class Table {
     this.storeTable();
   }
 
-  updateStatusFilter(status: "Incomplete" | "Complete" | "None") {
-    this.statusFilter = status;
-    this.renderDOM();
-  }
-
   toogleTaskStatus(UUID: string) {
     const task = this.tasksMap.get(UUID);
-    if (!task) throw new Error("Task not found");
+    if (!task)
+      throw new TaskNotFoundError(
+        `Task with UUID ${UUID} not found`,
+        this,
+        UUID,
+      );
 
     if (task.status === "Complete") task.status = "Incomplete";
     else task.status = "Complete";
 
-    this.storeTable();
-    this.renderDOM();
+    this.dispatchEvent(new CustomEvent("taskStatusChange"));
   }
 
   destroy() {
@@ -112,7 +116,7 @@ export class Table {
     localStorage.removeItem(`table_${this.name}`);
   }
 
-  storeTable() {
+  async storeTable() {
     const tableData = {
       name: this.name,
       tasksMapEntries: Array.from(this.tasksMap),
@@ -122,15 +126,15 @@ export class Table {
       sortingBy: this.sortingBy,
     };
 
-    localStorage.setItem(`table_${this.name}`, JSON.stringify(tableData));
+    await localStorage.setItem(`table_${this.name}`, JSON.stringify(tableData));
   }
 
-  static loadTable(data: string) {
+  static async loadTable(data: string) {
     const rawData = JSON.parse(data);
-    if (!rawData) return null;
+    if (!rawData || !rawData.name) return null;
 
+    const table = new Table(rawData.name);
     try {
-      const table = new Table(rawData.name);
       for (const [UUID, task] of rawData.tasksMapEntries) {
         const constructuredTask: Task = {
           ...task,
@@ -143,44 +147,49 @@ export class Table {
       table.statusFilter = rawData.statusFilter;
       table.sortingOrderBy = rawData.sortingOrderBy;
       table.sortingBy = rawData.sortingBy;
-
-      table.storeTable();
-      table.renderDOM();
-
-      return table;
     } catch (error) {
-      console.error(`Can't load table: ${error}`);
+      if (error instanceof Error) {
+        throw new TableLoadError(error.message);
+      } else {
+        console.error("An unexpected error occurred:", error);
+      }
     }
+
+    table.storeTable();
+    table.renderDOM();
+
+    return table;
   }
 
   addTask(task: Task) {
     const UUID = crypto.randomUUID();
     task.UUID = UUID;
     this.tasksMap.set(UUID, task);
-    this.storeTable();
-    this.renderDOM();
+    this.dispatchEvent(new CustomEvent("taskAdded", { detail: task }));
   }
 
   deleteTask(UUID: string) {
+    this.dispatchEvent(
+      new CustomEvent("taskDeleted", { detail: this.tasksMap.get(UUID) }),
+    );
     this.tasksMap.delete(UUID);
-    this.storeTable();
-    this.renderDOM();
   }
 
   renderDOM() {
     this.tbodyElement.innerHTML = "";
 
-    if (this.tasksMap.size === 0) {
-      this.tbodyElement.innerHTML = `
-        <span class="block m-0 mx-auto w-max p-4 italic">EMPTY TABLE</span>
-      `;
-      return;
-    }
-
     this.tasksOrder = [];
     for (const [_, task] of this.tasksMap) {
-      if (this.statusFilter === "None") this.tasksOrder.push(task);
+      if (!this.statusFilter || this.statusFilter === "None")
+        this.tasksOrder.push(task);
       else if (task.status === this.statusFilter) this.tasksOrder.push(task);
+    }
+
+    if (this.tasksOrder.length === 0) {
+      this.tbodyElement.innerHTML = `
+        <span class="block m-0 mx-auto font-bold w-max p-4 italic">No Task Found</span>
+      `;
+      return;
     }
 
     if (this.sortingBy === "Name") {

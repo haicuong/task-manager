@@ -1,5 +1,6 @@
 import { Table } from "./initial-table";
 import { createFixedHiddenDiv, registerUnforcusedEvent } from "./event-manager";
+import { TaskNotFoundError } from "./custom-errors";
 
 const deleteBox = createFixedHiddenDiv();
 deleteBox.classList.add("delete-container");
@@ -17,6 +18,11 @@ function showDeleteBox(event: PointerEvent) {
 }
 
 export function initialDeleteTask(table: Table) {
+  table.addEventListener("taskDeleted", () => {
+    table.storeTable();
+    table.renderDOM();
+  });
+
   table.tbodyElement.addEventListener("contextmenu", (event) => {
     if (!(event.target instanceof HTMLElement)) return;
 
@@ -29,7 +35,8 @@ export function initialDeleteTask(table: Table) {
 
     if (!(deleteButton instanceof HTMLButtonElement)) return;
     deleteButton!.onclick = () => {
-      if (!tr.dataset.uuid) throw new Error(`Task not have UUID`);
+      if (!tr.dataset.uuid)
+        throw new TaskNotFoundError(`Task's UUID not found`, table);
       table.deleteTask(tr.dataset.uuid);
       deleteBox.classList.add("hidden");
     };
@@ -56,6 +63,10 @@ export function initialDeleteTable(table: Table) {
       table.destroy();
       deleteBox.classList.add("hidden");
     };
+  });
+
+  table.addEventListener("destroy", () => {
+    localStorage.removeItem(`table_${table.name}`);
   });
 }
 

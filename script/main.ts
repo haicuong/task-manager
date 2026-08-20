@@ -7,7 +7,6 @@ import { initialTableSorting } from "./initial-table-sorting";
 import { loadAddTableButton } from "../add-table-button";
 
 loadTableFromStorage();
-loadAddTableButton(document.body);
 
 export function initialTable(table: Table): Table {
   initialDeleteTask(table);
@@ -16,19 +15,23 @@ export function initialTable(table: Table): Table {
   initialChangeStatus(table);
   initialStatusFilter(table);
   initialTableSorting(table);
+  console.log(`Table ${table.name} initialed`);
   return table;
 }
 
-function loadTableFromStorage() {
+async function loadTableFromStorage() {
   for (let index = 0; index < localStorage.length; index++) {
-    const key = localStorage.key(index);
+    const key = await localStorage.key(index);
     if (key && key.startsWith("table_")) {
-      const tableData = localStorage.getItem(key);
+      const tableData = await localStorage.getItem(key);
 
       if (tableData) {
-        const table = Table.loadTable(tableData);
+        const table = await Table.loadTable(tableData);
+        console.log(`Table: ${table ? "true" : "null"}`);
         if (table) initialTable(table);
       }
     }
   }
+
+  loadAddTableButton(document.body);
 }
