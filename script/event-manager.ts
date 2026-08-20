@@ -1,5 +1,8 @@
 import { Table } from "./initial-table";
 
+export const DEFAULT_BUTTON_CLASSES =
+  " bg-[#121212] rounded-xl p-2 border-2 border-white hover:bg-white/25 hover:cursor-pointer active:bg-white/50 active:text-shadow-md";
+
 export function registerUnforcusedEvent(handler: (event: Event) => void) {
   document.addEventListener("keydown", handler);
   document.addEventListener("mousedown", handler);

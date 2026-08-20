@@ -1,21 +1,27 @@
+import { DEFAULT_BUTTON_CLASSES } from "./event-manager";
+
 export type Task = {
   name: string;
   description: string;
   priority: "High" | "Medium" | "Low";
   date: Date;
   status: "Complete" | "Incomplete";
+  UUID?: string;
 };
 
 export class Table {
   name: string;
   tasksMap: Map<string, Task> = new Map();
-  tasksOrderUUID: string[] = [];
+  tasksOrder: Task[] = [];
   tableElement: HTMLTableElement = document.createElement("table");
   tbodyElement: HTMLTableSectionElement = document.createElement("tbody");
   statusFilter: "Incomplete" | "Complete" | "None" = "None";
+  sortingOrderBy: "Desc" | "Asc" = "Asc";
+  sortingBy: "Name" | "Date" = "Name";
 
   constructor(
     name: string,
+    addTableElement?: HTMLElement,
     tableElement?: HTMLTableElement,
     tbodyElement?: HTMLTableSectionElement,
   ) {
@@ -32,23 +38,36 @@ export class Table {
     this.tableElement.innerHTML = `
       <caption class="border-x-2 border-t-2 border-white">
         <div class="relative flex justify-between items-center p-4">
-          <button type="button" class="addTask hover:cursor-pointer hover:bg-white/25 bg-[#121212] border-2 border-white rounded-xl p-2">Add Task</button>
+          <button type="button" class="addTask ${DEFAULT_BUTTON_CLASSES}">Add Task</button>
           <h1 data-table-caption class="font-bold text-xl">${name}</h1>
-          <button class="font-bold p-2 rounded-xl border-2 border-white hover:bg-white/25" title="Click to filtering task by status" type="button" data-status-filter="${this.statusFilter}">${this.statusFilter}</button>
+          <button class="font-bold ${DEFAULT_BUTTON_CLASSES}" title="Click to filtering task by status" type="button" data-status-filter="${this.statusFilter}">${this.statusFilter}</button>
         </div>
       </caption>
       <thead>
       <tr>
-      <th class="border-2 p-4 border-white text-center">Name</th>
+      <th data-sorting="Name" title="Click to sort by name" class="border-2 select-none relative p-4 hover:bg-white/25 hover:cursor-pointer border-white text-center">Name</th>
       <th class="border-2 p-4 border-white text-center">Priority</th>
-      <th class="border-2 p-4 border-white text-center">Date</th>
+      <th data-sorting="Date" title="Click to sort by date" class="border-2 select-none relative p-4 hover:bg-white/25 hover:cursor-pointer border-white text-center">Date</th>
       <th class="border-2 p-4 border-white text-center">Status</th>
       </tr>
       </thead>`;
     this.tableElement.append(this.tbodyElement);
-    document.body.append(this.tableElement);
+    if (addTableElement) addTableElement.before(this.tableElement);
+    else document.body.append(this.tableElement);
 
     this.storeTable();
+  }
+
+  setSorting(sortingBy: "Name" | "Date", sortingOrderBy?: "Desc" | "Asc") {
+    if (sortingOrderBy) this.sortingOrderBy = sortingOrderBy;
+    else if (sortingBy === this.sortingBy) {
+      if (this.sortingOrderBy === "Asc") this.sortingOrderBy = "Desc";
+      else this.sortingOrderBy = "Asc";
+    } else this.sortingOrderBy = "Asc";
+    this.sortingBy = sortingBy;
+
+    this.storeTable();
+    this.renderDOM();
   }
 
   toggleStatusFilter() {
@@ -87,7 +106,7 @@ export class Table {
 
   destroy() {
     this.tasksMap.clear();
-    this.tasksOrderUUID = [];
+    this.tasksOrder = [];
     this.tableElement.remove();
 
     localStorage.removeItem(`table_${this.name}`);
@@ -97,8 +116,10 @@ export class Table {
     const tableData = {
       name: this.name,
       tasksMapEntries: Array.from(this.tasksMap),
-      tasksOrder: this.tasksOrderUUID,
+      tasksOrder: this.tasksOrder,
       statusFilter: this.statusFilter,
+      sortingOrderBy: this.sortingOrderBy,
+      sortingBy: this.sortingBy,
     };
 
     localStorage.setItem(`table_${this.name}`, JSON.stringify(tableData));
@@ -118,8 +139,10 @@ export class Table {
 
         table.tasksMap.set(UUID, constructuredTask);
       }
-      table.tasksOrderUUID = rawData.tasksOrder;
+      table.tasksOrder = rawData.tasksOrder;
       table.statusFilter = rawData.statusFilter;
+      table.sortingOrderBy = rawData.sortingOrderBy;
+      table.sortingBy = rawData.sortingBy;
 
       table.storeTable();
       table.renderDOM();
@@ -132,6 +155,7 @@ export class Table {
 
   addTask(task: Task) {
     const UUID = crypto.randomUUID();
+    task.UUID = UUID;
     this.tasksMap.set(UUID, task);
     this.storeTable();
     this.renderDOM();
@@ -153,36 +177,44 @@ export class Table {
       return;
     }
 
-    this.tasksOrderUUID = [];
-    for (const [UUID, task] of this.tasksMap) {
-      console.log(`${task.name}: ${task.status}`);
-      if (this.statusFilter === "None") this.tasksOrderUUID.push(UUID);
-      else if (task.status === this.statusFilter)
-        this.tasksOrderUUID.push(UUID);
+    this.tasksOrder = [];
+    for (const [_, task] of this.tasksMap) {
+      if (this.statusFilter === "None") this.tasksOrder.push(task);
+      else if (task.status === this.statusFilter) this.tasksOrder.push(task);
     }
 
-    /* if (this.statusFilter !== "None") {
-      this.tasksOrderUUID.filter((UUID) => {
-        const task = this.tasksMap.get(UUID);
-        if (!task) return false;
-
-        return task.status === this.statusFilter;
+    if (this.sortingBy === "Name") {
+      this.tasksOrder.sort((taskA, taskB) => {
+        if (this.sortingOrderBy === "Asc")
+          return taskA.name.localeCompare(taskB.name);
+        else return taskB.name.localeCompare(taskA.name);
       });
-    } */
+    } else if (this.sortingBy === "Date") {
+      this.tasksOrder.sort((taskA, taskB) => {
+        if (this.sortingOrderBy === "Asc") {
+          return (
+            taskA.date.getTime() - taskB.date.getTime() ||
+            taskA.name.localeCompare(taskB.name)
+          );
+        } else
+          return (
+            taskB.date.getTime() - taskA.date.getTime() ||
+            taskB.name.localeCompare(taskA.name)
+          );
+      });
+    }
 
-    for (const UUID of this.tasksOrderUUID) {
-      const task = this.tasksMap.get(UUID);
-      if (!task) throw new Error(`Task with UUID ${UUID} not exist`);
+    for (const task of this.tasksOrder) {
       const tr = document.createElement("tr");
-      tr.dataset.uuid = UUID;
+      tr.dataset.uuid = task.UUID;
       tr.innerHTML = `
         <td class="border-y-2 p-2 border-white text-center">
           <span data-tooltip-cursor="${task.description}">${task.name}</span>
         </td>
         <td class="border-y-2 p-2 ${getPriorityClassCSS(task.priority)} border-white text-center">${task.priority}</td>
-        <td class="border-y-2 p-2 border-white text-center">${task.date.toLocaleDateString()}</td>
+        <td class="border-y-2 p-2 border-white text-center"><span data-tooltip-cursor="${task.date.toLocaleString()}">${task.date.toLocaleDateString()}</span></td>
         <td class="border-y-2 p-2 border-white text-center">
-          <button title="Click to change status" class="task-status hover:cursor-pointer font-bold ${task.status === "Complete" ? "text-green-400" : "text-red-400"} bg-[#121212] p-2 hover:bg-white/25 rounded-xl border-2 border-white" type="button">${task.status ?? "Incomplete"}</button>
+          <button title="Click to change status" class="task-status font-bold ${task.status === "Complete" ? "text-green-400" : "text-red-400"} ${DEFAULT_BUTTON_CLASSES}" type="button">${task.status ?? "Incomplete"}</button>
         </td>
       `;
 

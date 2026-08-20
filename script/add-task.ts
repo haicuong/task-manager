@@ -2,7 +2,7 @@ import { Table } from "./initial-table";
 import { createFixedHiddenDiv, registerUnforcusedEvent } from "./event-manager";
 
 const addTaskBox = createFixedHiddenDiv();
-addTaskBox.className += " add-task-box p-4 w-fit";
+addTaskBox.className += " add-task-box p-4 w-fit z-50";
 addTaskBox.innerHTML = `
   <form action="" class="flex flex-col gap-2">
     <article>
