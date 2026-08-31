@@ -87,11 +87,11 @@ task-manager/
 
 ### Managing Tasks
 
-- **Change Status**: Click on a task to update its status
+- **Change Status**: Click on a task status to update its status
 - **Sort Tasks**: Click on table column headers to sort
 - **Filter by Status**: Use the status filter to view specific tasks
-- **Delete Task**: Click the delete button on any task to remove it
-- **Delete Table**: Remove all tasks at once
+- **Delete Task**: Right click on tasks to open delete box
+- **Delete Table**: Right click on table title to open delete box
 
 ### Data Persistence
 
