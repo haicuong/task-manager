@@ -1,6 +1,6 @@
-import { DEFAULT_BUTTON_CLASSES } from "./script/event-manager";
-import { Table } from "./script/initial-table";
-import { createTable } from "./script/main";
+import { DEFAULT_BUTTON_CLASSES } from "./event-manager";
+import { Table } from "./initial-table";
+import { createTable } from "./main";
 
 export function loadAddTableButton(parentElement: HTMLElement) {
   const form = document.createElement("form");

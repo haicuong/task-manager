@@ -37,8 +37,8 @@ task-manager/
 │   ├── initial-table-sorting.ts  # Table sorting functionality
 │   ├── async-storage.ts      # Local storage management
 │   ├── custom-errors.ts      # Custom error definitions
-│   └── tooltip-event.ts      # Tooltip interactions
-├── add-table-button.ts       # Add table button logic
+│   ├── tooltip-event.ts      # Tooltip interactions
+│   └── add-table-button.ts   # Add table button logic
 ├── index.html                # HTML entry point
 ├── styles.css                # Global styles
 ├── tsconfig.json             # TypeScript configuration

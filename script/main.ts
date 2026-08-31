@@ -4,7 +4,7 @@ import { initialAddTask } from "./add-task";
 import { initialChangeStatus } from "./event-manager";
 import { initialStatusFilter } from "./initial-status-filter";
 import { initialTableSorting } from "./initial-table-sorting";
-import { loadAddTableButton } from "../add-table-button";
+import { loadAddTableButton } from "./add-table-button";
 import { TableLoadError } from "./custom-errors";
 import { asyncStorage } from "./async-storage";
 
