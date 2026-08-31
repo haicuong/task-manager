@@ -6,14 +6,14 @@ import {
 } from "./custom-errors";
 import { DEFAULT_BUTTON_CLASSES } from "./event-manager";
 
-export type Task = {
+export interface Task {
   name: string;
   description: string;
   priority: "High" | "Medium" | "Low";
   date: Date;
   status: "Complete" | "Incomplete";
   UUID?: string;
-};
+}
 
 export class Table extends EventTarget {
   name: string;
