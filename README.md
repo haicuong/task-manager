@@ -2,6 +2,8 @@
 
 A modern, lightweight task management web application built with TypeScript, Vite and Tailwind CSS. Organize your tasks efficiently with a clean, dark-themed interface.
 
+🔴 Live demo: [task-manager.haicuong.me](https://task-manager.haicuong.me/)
+
 ## Features
 
 ✨ **Core Functionality**
