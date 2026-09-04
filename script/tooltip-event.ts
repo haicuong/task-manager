@@ -1,4 +1,4 @@
-import { createFixedHiddenDiv } from "./event-manager";
+import { createFixedHiddenDiv, registerUnforcusedEvent } from "./event-manager";
 
 const tooltipBox = createFixedHiddenDiv();
 tooltipBox.className += " pointer-events-none max-w-[50%] p-2";
@@ -74,3 +74,14 @@ document.addEventListener("mouseout", (event) => {
     requestAnimationID = null;
   }
 });
+
+function hideTooltipBoxEvent(event: Event) {
+  if (tooltipBox.classList.contains("hidden")) return;
+
+  if (!(event.target instanceof HTMLElement)) return;
+
+  if (event.target.closest("[data-tooltip-cursor]") === null)
+    tooltipBox.classList.add("hidden");
+}
+
+registerUnforcusedEvent(hideTooltipBoxEvent);

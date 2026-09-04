@@ -5,8 +5,8 @@ export const DEFAULT_BUTTON_CLASSES =
 
 export function registerUnforcusedEvent(handler: (event: Event) => void) {
   document.addEventListener("keydown", handler);
-  document.addEventListener("mousedown", handler);
-  document.addEventListener("wheel", handler);
+  document.addEventListener("pointerdown", handler);
+  document.addEventListener("wheel", handler, { passive: true });
 }
 
 export function createFixedHiddenDiv() {

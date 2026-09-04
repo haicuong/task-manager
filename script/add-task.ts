@@ -3,7 +3,7 @@ import { createFixedHiddenDiv, registerUnforcusedEvent } from "./event-manager";
 import { DataNotFoundError, FormNotFoundError } from "./custom-errors";
 
 const addTaskBox = createFixedHiddenDiv();
-addTaskBox.className += " add-task-box p-4 w-fit z-50";
+addTaskBox.className += " add-task-box p-4 w-fit z-50 touch-none";
 addTaskBox.innerHTML = `
   <form action="" class="flex flex-col gap-2">
     <article>
@@ -44,6 +44,8 @@ function hideAddTaskBoxEvent(event: Event) {
     addTaskBox.classList.add("hidden");
 }
 
+let targetTable: Table | undefined = undefined;
+
 export function initialAddTask(table: Table) {
   const addTaskButton = table.tableElement.querySelector(".addTask");
   if (!addTaskButton || !(addTaskButton instanceof HTMLButtonElement)) return;
@@ -53,6 +55,8 @@ export function initialAddTask(table: Table) {
     const buttonRect = addTaskButton.getBoundingClientRect();
     addTaskBox.style.top = `${buttonRect.bottom}px`;
     addTaskBox.style.left = `${buttonRect.left}px`;
+
+    targetTable = table;
 
     const nameInput = addTaskBox.querySelector<HTMLInputElement>("#name-input");
     if (nameInput) nameInput.value = "";
@@ -70,14 +74,16 @@ export function initialAddTask(table: Table) {
     dateInput.valueAsDate = new Date();
   });
 
-  const form = addTaskBox.querySelector("form");
-  if (!form)
-    throw new FormNotFoundError("Form not found on initial Add Task Box");
-
   table.addEventListener("taskAdded", () => {
     table.storeTable();
     table.renderDOM();
   });
+}
+
+function registerFormSubmit() {
+  const form = addTaskBox.querySelector("form");
+  if (!form)
+    throw new FormNotFoundError("Form not found on initial Add Task Box");
 
   form.addEventListener("submit", (event) => {
     if (!(event.target instanceof HTMLFormElement)) return;
@@ -93,7 +99,7 @@ export function initialAddTask(table: Table) {
       | "High";
     const date = new Date(formData.get("dateInput") as string);
 
-    table.addTask({
+    targetTable?.addTask({
       name,
       description,
       priority,
@@ -105,4 +111,5 @@ export function initialAddTask(table: Table) {
   });
 }
 
+registerFormSubmit();
 registerUnforcusedEvent(hideAddTaskBoxEvent);

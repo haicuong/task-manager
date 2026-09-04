@@ -44,9 +44,9 @@ export class Table extends EventTarget {
       "w-full m-4 mx-auto border-collapse border-2 border-white border-white";
     this.tableElement.innerHTML = `
       <caption class="border-x-2 border-t-2 border-white">
-        <div class="relative flex justify-between items-center p-4">
+        <div class="relative flex justify-between items-center px-4 py-2">
           <button type="button" class="addTask ${DEFAULT_BUTTON_CLASSES}">Add Task</button>
-          <h1 data-table-caption class="font-bold text-xl">${name}</h1>
+          <h1 data-table-caption class="font-bold p-4 text-xl">${name}</h1>
           <button class="font-bold ${DEFAULT_BUTTON_CLASSES}" title="Click to filtering task by status" type="button" data-status-filter="${this.statusFilter}">${this.statusFilter}</button>
         </div>
       </caption>
@@ -105,6 +105,10 @@ export class Table extends EventTarget {
   }
 
   async destroy() {
+    document.body.dispatchEvent(
+      new CustomEvent("tableDelete", { detail: this }),
+    );
+
     this.tasksMap.clear();
     this.tasksOrder = [];
     this.tableElement.remove();
@@ -155,7 +159,9 @@ export class Table extends EventTarget {
   }
 
   addTask(task: Task) {
-    const UUID = crypto.randomUUID();
+    const UUID =
+      globalThis.crypto?.randomUUID?.() ??
+      `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     task.UUID = UUID;
     this.tasksMap.set(UUID, task);
     this.dispatchEvent(new CustomEvent("taskAdded", { detail: task }));
@@ -178,7 +184,7 @@ export class Table extends EventTarget {
 
     if (this.tasksOrder.length === 0) {
       this.tbodyElement.innerHTML = `
-        <span class="block m-0 mx-auto font-bold w-max p-4 italic">No Task Found</span>
+        <tr class="m-0"><td class="font-bold text-center p-4 italic" colspan="4">No task found</td></tr>
       `;
       return;
     }

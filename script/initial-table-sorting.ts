@@ -4,7 +4,7 @@ export function initialTableSorting(table: Table) {
   const sortingIcon = document.createElement("div");
   sortingIcon.classList =
     "flex absolute bottom-1 transform right-1 justify-center items-center size-5 bg-gray-400/50 p-1 rounded-full";
-  sortingIcon.innerHTML = `<img src="assets/images/sorting-arrow-right.png" alt="">`;
+  sortingIcon.innerHTML = `<img src="images/sorting-arrow-right.png" alt="">`;
 
   rotateSortingIconByOrder(sortingIcon, table.sortingOrderBy);
 
