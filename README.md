@@ -158,7 +158,7 @@ The application follows a modular architecture:
 - **Storage Layer**: Async storage provides persistent data management
 - **UI Components**: Separate modules handle different features such as filtering and sorting
 
-## Future Enhancements (Not planned)
+## Future Roadmap
 
 Potential improvements:
 
